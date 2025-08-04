@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Exact nexxel.dev color theme */
+    --background: 210 11% 9%;
+    --foreground: 0 0% 90%;
+
+    --card: 210 11% 11%;
+    --card-foreground: 0 0% 90%;
+
+    --popover: 210 11% 11%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 120 100% 70%;
+    --primary-foreground: 210 11% 9%;
+
+    --secondary: 210 11% 15%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 210 11% 12%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 30 100% 65%;
+    --accent-foreground: 210 11% 9%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 11% 15%;
+    --input: 210 11% 15%;
+    --ring: 120 100% 70%;
+
+    --radius: 0.25rem;
+
+    /* Terminal-specific colors matching nexxel.dev */
+    --terminal-green: 120 100% 70%;
+    --terminal-orange: 30 100% 65%;
+    --terminal-gray: 0 0% 60%;
+    --terminal-dark: 210 11% 9%;
+    --terminal-darker: 210 11% 7%;
+
+    /* Animation values */
+    --cursor-blink: blink 1s infinite;
+    --fade-in: fade-in 0.3s ease-out;
+  }
+
+  .dark {
+    /* Keep same exact theme for dark mode */
+    --background: 210 11% 9%;
+    --foreground: 0 0% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-mono;
+  }
+
+  /* Terminal cursor animation */
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Terminal-style selection */
+  ::selection {
+    background: hsl(var(--terminal-green) / 0.3);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
