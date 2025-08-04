@@ -4,25 +4,25 @@ const ProjectsSection = () => {
       name: "ai resume parser",
       role: "creator",
       description: "extract skills and experience from pdfs using spacy and show results in a react dashboard",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld",
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/AI-Resume-Parser",
     },
     {
       name: "codecircle extension",
       role: "creator",
       description: "chrome extension for leetcode users to form coding groups, track progress, and build learning communities",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld",
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/codeCircle-extension",
     },
     {
       name: "insights",
       role: "creator",
       description: "personalized news app built with mern stack using newsapi.org",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld",
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/insights",
     },
     {
       name: "hyper-vote",
       role: "creator",
       description: "decentralized voting app built with ethereum and metamask",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld",
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/Hyper_Vote",
     },
   ];
 
@@ -66,9 +66,7 @@ const ProjectsSection = () => {
         
         <div className="pt-4">
           <a
-            href="https://github.com/P1r4t30fTh3Und3rW0rld"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/projects"
             className="text-terminal-orange hover:text-terminal-orange/80 transition-colors inline-block hover:translate-x-2 duration-200"
           >
             all projects ↗

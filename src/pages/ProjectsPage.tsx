@@ -40,7 +40,7 @@ const ProjectsPage = () => {
         "achieved 95% accuracy in skill extraction"
       ],
       technologies: ["python", "spacy", "react", "typescript"],
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld"
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/AI-Resume-Parser"
     },
     {
       name: "codecircle extension",
@@ -53,7 +53,7 @@ const ProjectsPage = () => {
         "created community features for collaborative learning"
       ],
       technologies: ["javascript", "chrome api", "firebase", "html/css"],
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld"
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/codeCircle-extension"
     },
     {
       name: "insights",
@@ -66,7 +66,7 @@ const ProjectsPage = () => {
         "implemented user preferences and filtering"
       ],
       technologies: ["mongodb", "express", "react", "node.js", "newsapi"],
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld"
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/insights"
     },
     {
       name: "hyper-vote",
@@ -79,7 +79,7 @@ const ProjectsPage = () => {
         "built transparent and immutable voting system"
       ],
       technologies: ["ethereum", "solidity", "react", "web3.js", "metamask"],
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld"
+      link: "https://github.com/P1r4t30fTh3Und3rW0rld/Hyper_Vote"
     }
   ];
 
@@ -172,11 +172,20 @@ const ProjectsPage = () => {
                 </div>
               </a>
             </div>
-          ))}
-        </div>
-      </main>
-    </div>
-  );
+                     ))}
+         </div>
+         
+         <div className="mt-12 text-center">
+           <a 
+             href="/" 
+             className="text-foreground hover:text-terminal-green transition-colors underline"
+           >
+             return home
+           </a>
+         </div>
+       </main>
+     </div>
+   );
 };
 
 export default ProjectsPage; 
