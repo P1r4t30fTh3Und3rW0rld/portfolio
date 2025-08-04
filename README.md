@@ -1,6 +1,7 @@
 # Portfolio
 
 Personal portfolio website built with React, TypeScript, and Tailwind CSS.
+heavily inspired by nexxel.dev
 
 ## Getting Started
 
