@@ -27,12 +27,12 @@ const ProjectsSection = () => {
   ];
 
   return (
-    <section id="projects" className="mb-12 animate-fade-in">{/* Reduced margin */}
-      <h2 className="text-terminal-orange mb-6 text-lg font-normal">{/* Reduced size and margin */}
+    <section id="projects" className="mb-12 animate-fade-in">
+      <h2 className="text-terminal-orange mb-6 text-lg font-normal">
         <span className="text-terminal-orange">*</span> projects
       </h2>
       
-      <div className="space-y-6">{/* Reduced spacing */}
+      <div className="space-y-6">
         {projects.map((project, index) => (
           <div 
             key={index} 

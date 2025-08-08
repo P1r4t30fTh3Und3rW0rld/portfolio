@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import WorkSection from "@/components/WorkSection";
 import BlogSection from "@/components/BlogSection";
 import ProjectsSection from "@/components/ProjectsSection";
+import SkillsSection from "@/components/SkillsSection";
 import LinksSection from "@/components/LinksSection";
 import TerminalCursor from "@/components/TerminalCursor";
 import { MapPin, Briefcase } from "lucide-react";
@@ -32,7 +33,7 @@ const Index = () => {
             <p className="text-muted-foreground leading-relaxed max-w-3xl text-sm animate-fade-in-delay">
               i'm a cs undergrad passionate about building secure, scalable software with ai and backend 
               systems. i love working with the mern stack, java, python, and exploring genai and nlp. 
-              when i'm not coding, i'm probably watching movies or tinkering with tech.
+              when i'm not coding, i'm probably Scrolling X or tinkering with tech.
             </p>
             
             <div className="mt-6">
@@ -48,10 +49,21 @@ const Index = () => {
         </header>
 
         {/* Content Sections */}
-        <WorkSection />
-        <BlogSection />
-        <ProjectsSection />
-        <LinksSection />
+        <section id="work">
+          <WorkSection />
+        </section>
+        <section id="skills">
+          <SkillsSection />
+        </section>
+        <section id="blog">
+          <BlogSection />
+        </section>
+        <section id="projects">
+          <ProjectsSection />
+        </section>
+        <section id="links">
+          <LinksSection />
+        </section>
       </main>
     </div>
   );

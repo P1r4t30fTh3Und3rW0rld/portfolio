@@ -1,26 +1,7 @@
+import { getAllBlogPosts, formatDateShort } from "@/lib/blog-utils";
+
 const BlogSection = () => {
-  const blogPosts = [
-    {
-      title: "building secure apis with node.js and express",
-      date: "oct 15, 2024",
-      link: "#",
-    },
-    {
-      title: "exploring natural language processing with spacy",
-      date: "sep 8, 2024",
-      link: "#",
-    },
-    {
-      title: "mern stack best practices for scalable apps",
-      date: "aug 20, 2024",
-      link: "#",
-    },
-    {
-      title: "getting started with blockchain development",
-      date: "jul 12, 2024",
-      link: "#",
-    },
-  ];
+  const blogPosts = getAllBlogPosts().slice(0, 4); // Show only the latest 4 posts
 
   return (
     <section id="blog" className="mb-12 animate-fade-in">{/* Reduced margin */}
@@ -36,16 +17,14 @@ const BlogSection = () => {
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <a
-              href={post.link}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/blog/${post.id}`}
               className="flex justify-between items-start transition-all duration-200 hover:translate-x-2 py-2"
             >
               <span className="text-foreground group-hover:text-terminal-green transition-colors leading-relaxed">
                 {post.title}
               </span>
               <span className="text-muted-foreground text-sm ml-4 whitespace-nowrap">
-                {post.date}
+                {formatDateShort(post.date)}
               </span>
             </a>
           </div>
