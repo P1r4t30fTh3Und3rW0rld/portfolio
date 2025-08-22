@@ -175,6 +175,16 @@ const BlogPage = () => {
           </div>
         )}
 
+        {/* Return Home Button */}
+        <div className="mt-12 text-center">
+          <a 
+            href="/" 
+            className="text-foreground hover:text-terminal-green transition-colors underline"
+          >
+            return home
+          </a>
+        </div>
+
         {/* Search Window */}
         {showSearch && (
           <div className="fixed bottom-0 left-0 right-0">
