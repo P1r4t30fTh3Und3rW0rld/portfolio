@@ -4,7 +4,6 @@ import BlogSection from "@/components/BlogSection";
 import ProjectsSection from "@/components/ProjectsSection";
 import SkillsSection from "@/components/SkillsSection";
 import LinksSection from "@/components/LinksSection";
-import TerminalCursor from "@/components/TerminalCursor";
 import { MapPin, Briefcase } from "lucide-react";
 
 const Index = () => {
@@ -14,9 +13,13 @@ const Index = () => {
       
       <main className="max-w-4xl mx-auto px-8 py-12">{/* Adjusted padding to match reference */}
         {/* Header Section */}
-        <header id="home" className="mb-16 animate-fade-in">{/* Reduced margin to match spacing */}
-          <div className="mb-6">{/* Reduced margin */}
-            <h1 className="text-3xl font-normal text-foreground mb-3">{/* Adjusted size and weight */}
+        <section id="home" className="mb-12 animate-fade-in">
+          <h2 className="text-terminal-orange mb-6 text-lg font-normal">
+            <span className="text-terminal-orange">*</span> home
+          </h2>
+          
+          <div className="mb-6">
+            <h1 className="text-2xl font-normal text-foreground mb-3">
               Priyanshu Chikara —
             </h1>
             
@@ -46,7 +49,7 @@ const Index = () => {
               </a>
             </div>
           </div>
-        </header>
+        </section>
 
         {/* Content Sections */}
         <section id="work">
