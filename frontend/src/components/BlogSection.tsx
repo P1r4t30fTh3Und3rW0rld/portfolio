@@ -50,8 +50,8 @@ const BlogSection = () => {
                 <h3 className="text-base font-normal text-foreground group-hover:text-terminal-orange transition-colors">
                   {post.title}
                 </h3>
-                <div className="text-sm text-muted-foreground min-w-[100px] text-right group-hover:text-foreground transition-colors">
-                  {formatDate(post.publishedAt)}
+                <div className="text-muted-foreground text-sm mb-2">
+                  {formatDate(post.published_at)} • {post.read_time}
                 </div>
               </div>
             </a>

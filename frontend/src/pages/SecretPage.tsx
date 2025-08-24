@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import BlogManagement from "@/components/BlogManagement";
+import ProjectsManagement from "@/components/ProjectsManagement";
 
-type AdminSection = 'dashboard' | 'blog-management';
+type TabType = 'blog' | 'projects';
 
 const SecretPage = () => {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ const SecretPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [currentSection, setCurrentSection] = useState<AdminSection>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('blog');
   const navigate = useNavigate();
   const { user, login, logout, loading } = useAuth();
 
@@ -28,7 +29,6 @@ const SecretPage = () => {
       }
     } catch (error) {
       setError("Login failed. Please try again.");
-      setPassword("");
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +39,6 @@ const SecretPage = () => {
     setEmail("");
     setPassword("");
     setError("");
-    setCurrentSection('dashboard');
   };
 
   if (loading) {
@@ -118,60 +117,9 @@ const SecretPage = () => {
     );
   }
 
-  const renderSection = () => {
-    switch (currentSection) {
-      case 'blog-management':
-        return <BlogManagement />;
-      default:
-        return (
-          <div className="space-y-6">
-            <div className="border border-border rounded-lg p-6">
-              <h2 className="text-foreground font-semibold text-lg mb-4">
-                blog management
-              </h2>
-              <div className="grid gap-4">
-                <button 
-                  onClick={() => setCurrentSection('blog-management')}
-                  className="px-4 py-2 bg-muted border border-border rounded-md hover:border-terminal-orange transition-colors text-left"
-                >
-                  manage posts
-                </button>
-                <button className="px-4 py-2 bg-muted border border-border rounded-md hover:border-terminal-orange transition-colors text-left">
-                  create new post
-                </button>
-                <button className="px-4 py-2 bg-muted border border-border rounded-md hover:border-terminal-orange transition-colors text-left">
-                  view analytics
-                </button>
-              </div>
-            </div>
-            
-            <div className="border border-border rounded-lg p-6">
-              <h2 className="text-foreground font-semibold text-lg mb-4">
-                quick stats
-              </h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="text-muted-foreground">
-                  total posts: <span className="text-foreground">5</span>
-                </div>
-                <div className="text-muted-foreground">
-                  published: <span className="text-foreground">5</span>
-                </div>
-                <div className="text-muted-foreground">
-                  drafts: <span className="text-foreground">0</span>
-                </div>
-                <div className="text-muted-foreground">
-                  role: <span className="text-terminal-green">{user.role}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background text-foreground font-mono">
-      {/* Header with user info, navigation, and logout */}
+      {/* Header with user info and logout */}
       <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
         <div className="text-sm text-muted-foreground">
           logged in as <span className="text-terminal-green">{user.email}</span>
@@ -184,43 +132,56 @@ const SecretPage = () => {
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Back to home button */}
       <div className="fixed top-6 left-6 z-50">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentSection('dashboard')}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              currentSection === 'dashboard'
-                ? 'bg-terminal-orange text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            dashboard
-          </button>
-          <button
-            onClick={() => setCurrentSection('blog-management')}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              currentSection === 'blog-management'
-                ? 'bg-terminal-orange text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            blog
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/')}
+          className="px-3 py-1 bg-muted text-muted-foreground hover:text-foreground transition-colors rounded text-sm"
+        >
+          ← home
+        </button>
       </div>
       
-      <main className="max-w-4xl mx-auto px-8 py-12">
-        <header className="mb-12">
-          <h1 className="text-terminal-orange mb-6 text-2xl">
+      <main className="max-w-6xl mx-auto px-8 py-12">
+        <header className="mb-8">
+          <h1 className="text-terminal-orange mb-4 text-2xl">
             <span className="text-terminal-orange">*</span> admin dashboard
           </h1>
           <p className="text-muted-foreground">
-            welcome to your admin area, {user.email}
+            manage your content, {user.email}
           </p>
         </header>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('blog')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'blog'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            blog management
+          </button>
+          <button
+            onClick={() => setActiveTab('projects')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'projects'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            projects management
+          </button>
+        </div>
         
-        {renderSection()}
+        {/* Tab Content */}
+        {activeTab === 'blog' ? (
+          <BlogManagement />
+        ) : (
+          <ProjectsManagement />
+        )}
       </main>
     </div>
   );

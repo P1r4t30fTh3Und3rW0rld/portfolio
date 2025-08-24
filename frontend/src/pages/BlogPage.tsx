@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { blogService } from '@/lib/blog-service';
 import { formatDate } from '@/lib/utils';
 import Navigation from '@/components/Navigation';
@@ -10,14 +10,15 @@ const BlogPage = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Fetch all posts once on component mount
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const data = await blogService.getAllPosts(search, 1, 20); // Assuming currentPage is 1 for initial load
+        const data = await blogService.getAllPosts('', 1, 100); // Get all posts
         setPosts(data.posts);
-        // setTotalPages(data.pagination.pages); // This line is removed
       } catch (error) {
         console.error('Failed to fetch posts:', error);
       } finally {
@@ -26,7 +27,24 @@ const BlogPage = () => {
     };
 
     fetchPosts();
-  }, [search]); // Removed currentPage from dependency array
+  }, []); // Only run once on mount
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      // Search is now handled client-side, no need to fetch from API
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [search]);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -49,7 +67,6 @@ const BlogPage = () => {
         event.preventDefault();
         setShowSearch(false);
         setSearch('');
-        // setSearchParams({}); // This line is removed
         setHighlightedIndex(-1);
         return;
       }
@@ -86,11 +103,12 @@ const BlogPage = () => {
     return () => {
       window.removeEventListener('keydown', handleSearchKeys);
     };
-  }, [showSearch, search, posts, highlightedIndex]); // Removed setSearchParams from dependency array
+  }, [showSearch, search, posts, highlightedIndex]);
 
-  // Removed handleCancel function
-
-  // Removed handlePageChange function
+  // Filter posts based on search
+  const filteredPosts = search 
+    ? posts.filter(post => post.title.toLowerCase().includes(search.toLowerCase()))
+    : posts;
 
   if (loading) {
     return (
@@ -125,7 +143,7 @@ const BlogPage = () => {
         </div>
 
         {/* Posts List */}
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">
               {search ? 'No posts found matching your search.' : 'No posts available.'}
@@ -133,45 +151,38 @@ const BlogPage = () => {
           </div>
         ) : (
           <div className="space-y-4 mb-8">
-            {(() => {
-              // Compute filtered and sorted posts once
-              const filteredPosts = search 
-                ? posts.filter(post => post.title.toLowerCase().includes(search.toLowerCase()))
-                : posts;
+            {filteredPosts.map((post, index) => {
+              const isHighlighted = search && index === highlightedIndex;
               
-              return filteredPosts.map((post, index) => {
-                const isHighlighted = search && index === highlightedIndex;
-                
-                return (
-                  <article 
-                    key={post.id} 
-                    className={`border border-border rounded-lg p-4 transition-all duration-200 cursor-pointer ${
-                      isHighlighted 
-                        ? 'bg-terminal-orange/20 border-terminal-orange shadow-lg' 
-                        : 'bg-muted/20 hover:border-terminal-orange'
-                    }`}
-                    onClick={() => window.location.href = `/blog/${post.slug}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        window.location.href = `/blog/${post.slug}`;
-                      }
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Open blog post: ${post.title}`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-base font-normal text-foreground group-hover:text-terminal-orange transition-colors">
-                        {post.title}
-                      </h3>
-                      <div className="text-sm text-muted-foreground min-w-[100px] text-right group-hover:text-foreground transition-colors">
-                        {formatDate(post.publishedAt)}
-                      </div>
+              return (
+                <article 
+                  key={post.id} 
+                  className={`border border-border rounded-lg p-4 transition-all duration-200 cursor-pointer ${
+                    isHighlighted 
+                      ? 'bg-terminal-orange/20 border-terminal-orange shadow-lg' 
+                      : 'bg-muted/20 hover:border-terminal-orange'
+                  }`}
+                  onClick={() => window.location.href = `/blog/${post.slug}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      window.location.href = `/blog/${post.slug}`;
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open blog post: ${post.title}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-base font-normal text-foreground group-hover:text-terminal-orange transition-colors">
+                      {post.title}
+                    </h3>
+                    <div className="text-muted-foreground text-sm mb-2">
+                      {formatDate(post.published_at)} • {post.read_time}
                     </div>
-                  </article>
-                );
-              });
-            })()}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
 
@@ -208,9 +219,6 @@ const BlogPage = () => {
                       e.preventDefault();
                       // Open the currently highlighted post
                       if (highlightedIndex >= 0) {
-                        const filteredPosts = search 
-                          ? posts.filter(post => post.title.toLowerCase().includes(search.toLowerCase()))
-                          : posts;
                         if (filteredPosts[highlightedIndex]) {
                           window.location.href = `/blog/${filteredPosts[highlightedIndex].slug}`;
                         }

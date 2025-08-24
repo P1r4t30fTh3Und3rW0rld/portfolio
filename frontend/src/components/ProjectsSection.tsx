@@ -1,30 +1,36 @@
+import { useState, useEffect } from "react";
+import { projectsService, Project } from "@/lib/projects-service";
+
 const ProjectsSection = () => {
-  const projects = [
-    {
-      name: "ai resume parser",
-      role: "creator",
-      description: "extract skills and experience from pdfs using spacy and show results in a react dashboard",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld/AI-Resume-Parser",
-    },
-    {
-      name: "codecircle extension",
-      role: "creator",
-      description: "chrome extension for leetcode users to form coding groups, track progress, and build learning communities",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld/codeCircle-extension",
-    },
-    {
-      name: "insights",
-      role: "creator",
-      description: "personalized news app built with mern stack using newsapi.org",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld/insights",
-    },
-    {
-      name: "hyper-vote",
-      role: "creator",
-      description: "decentralized voting app built with ethereum and metamask",
-      link: "https://github.com/P1r4t30fTh3Und3rW0rld/Hyper_Vote",
-    },
-  ];
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const featuredProjects = await projectsService.getFeaturedProjects();
+        setProjects(featuredProjects);
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="projects" className="mb-12 animate-fade-in">
+        <h2 className="text-terminal-orange mb-6 text-lg font-normal">
+          <span className="text-terminal-orange">*</span> projects
+        </h2>
+        <div className="text-muted-foreground">Loading projects...</div>
+      </section>
+    );
+  }
 
   return (
     <section id="projects" className="mb-12 animate-fade-in">
@@ -35,12 +41,12 @@ const ProjectsSection = () => {
       <div className="space-y-6">
         {projects.map((project, index) => (
           <div 
-            key={index} 
+            key={project.id} 
             className="group animate-fade-in"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <a
-              href={project.link}
+              href={project.github_url || '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="block transition-all duration-200 hover:translate-x-2"
@@ -53,7 +59,7 @@ const ProjectsSection = () => {
               </div>
               
               <div className="mb-2 text-muted-foreground">
-                {project.role}
+                creator
                 <span className="text-muted-foreground">\\</span>
               </div>
               

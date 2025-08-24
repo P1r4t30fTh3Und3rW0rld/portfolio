@@ -4,13 +4,14 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Validate required environment variables
-const requiredEnvVars = ['JWT_SECRET', 'ADMIN_EMAIL', 'ADMIN_PASSWORD'];
+const requiredEnvVars = ['JWT_SECRET', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SUPABASE_URL', 'SUPABASE_ANON_KEY'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
@@ -18,6 +19,9 @@ if (missingEnvVars.length > 0) {
   console.error('Please check your .env file and ensure all required variables are set.');
   process.exit(1);
 }
+
+// Initialize Supabase client
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 // Security middleware
 app.use(helmet());
@@ -54,6 +58,9 @@ app.use(express.json({ limit: '10mb' }));
 
 // In-memory user storage (replace with database in production)
 let users = [];
+
+// Blog posts are now stored in Supabase database
+// Removed in-memory blogPosts array
 
 // Initialize admin user on server start
 const initializeAdminUser = async () => {
@@ -174,19 +181,363 @@ app.post('/api/auth/logout', authenticateToken, (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
+// Projects API endpoints
+app.get('/api/projects', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Failed to fetch projects' });
+    }
+
+    res.json({ projects: data || [] });
+  } catch (error) {
+    console.error('Projects fetch error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/projects', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { name, description, image_url, github_url, live_url, technologies, featured, display_order } = req.body;
+    
+    if (!name || !description) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          name,
+          description,
+          image_url,
+          github_url,
+          live_url,
+          technologies: technologies || [],
+          featured: featured || false,
+          display_order: display_order || 0
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return res.status(500).json({ error: 'Failed to create project' });
+    }
+
+    res.status(201).json({ project: data, message: 'Project created successfully' });
+  } catch (error) {
+    console.error('Project creation error:', error);
+    res.status(500).json({ error: 'Failed to create project' });
+  }
+});
+
+app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { id } = req.params;
+    const { name, description, image_url, github_url, live_url, technologies, featured, display_order } = req.body;
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .update({
+        name,
+        description,
+        image_url,
+        github_url,
+        live_url,
+        technologies: technologies || [],
+        featured: featured || false,
+        display_order: display_order || 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase update error:', error);
+      return res.status(500).json({ error: 'Failed to update project' });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({ project: data, message: 'Project updated successfully' });
+  } catch (error) {
+    console.error('Project update error:', error);
+    res.status(500).json({ error: 'Failed to update project' });
+  }
+});
+
+app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return res.status(500).json({ error: 'Failed to delete project' });
+    }
+
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Project deletion error:', error);
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+});
+
 // Blog management routes (protected)
-app.get('/api/admin/posts', authenticateToken, (req, res) => {
+app.get('/api/admin/posts', authenticateToken, async (req, res) => {
   if (req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Admin access required' });
   }
   
-  // Return mock posts for now
-  const posts = [
-    { id: 1, title: 'Sample Post 1', status: 'published' },
-    { id: 2, title: 'Sample Post 2', status: 'draft' }
-  ];
-  
-  res.json({ posts });
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error fetching blog posts:', error);
+      return res.status(500).json({ error: 'Failed to fetch blog posts' });
+    }
+
+    res.json({ posts: data || [] });
+  } catch (error) {
+    console.error('Blog posts fetch error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create new blog post
+app.post('/api/admin/posts', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { title, excerpt, content, read_time, status } = req.body;
+    
+    if (!title || !excerpt || !content || !read_time) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Generate slug from title
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // Check if slug already exists
+    const { data: existingPost } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+
+    if (existingPost) {
+      return res.status(400).json({ error: 'A post with this title already exists' });
+    }
+
+    const newPost = {
+      slug,
+      title,
+      excerpt,
+      content,
+      read_time,
+      published_at: status === 'PUBLISHED' ? new Date().toISOString() : null,
+      author: req.user.email,
+      status: status || 'DRAFT'
+    };
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .insert([newPost])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return res.status(500).json({ error: 'Failed to create post' });
+    }
+
+    res.status(201).json({ post: data, message: 'Post created successfully' });
+  } catch (error) {
+    console.error('Create post error:', error);
+    res.status(500).json({ error: 'Failed to create post' });
+  }
+});
+
+// Update blog post
+app.put('/api/admin/posts/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { id } = req.params;
+    const { title, excerpt, content, read_time, status } = req.body;
+    
+    // First, get the current post to check if we need to set published_at
+    const { data: currentPost, error: fetchError } = await supabase
+      .from('blog_posts')
+      .select('published_at')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error('Supabase fetch error:', fetchError);
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const updateData = {
+      title,
+      excerpt,
+      content,
+      read_time,
+      status,
+      updated_at: new Date().toISOString()
+    };
+
+    // Set published_at if status is changing to PUBLISHED and it wasn't published before
+    if (status === 'PUBLISHED' && !currentPost.published_at) {
+      updateData.published_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase update error:', error);
+      return res.status(500).json({ error: 'Failed to update post' });
+    }
+
+    res.json({ post: data, message: 'Post updated successfully' });
+  } catch (error) {
+    console.error('Update post error:', error);
+    res.status(500).json({ error: 'Failed to update post' });
+  }
+});
+
+// Delete blog post
+app.delete('/api/admin/posts/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('blog_posts')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return res.status(500).json({ error: 'Failed to delete post' });
+    }
+
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Delete post error:', error);
+    res.status(500).json({ error: 'Failed to delete post' });
+  }
+});
+
+// Public blog routes (no authentication required)
+app.get('/api/blog', async (req, res) => {
+  try {
+    const { search = '', page = 1, limit = 10 } = req.query;
+    
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'PUBLISHED')
+      .order('published_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error fetching published posts:', error);
+      return res.status(500).json({ error: 'Failed to fetch published blog posts' });
+    }
+
+    let filteredPosts = data || [];
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredPosts = filteredPosts.filter(post => 
+        post.title.toLowerCase().includes(searchLower) ||
+        post.excerpt.toLowerCase().includes(searchLower) ||
+        post.content.toLowerCase().includes(searchLower)
+      );
+    }
+
+    const total = filteredPosts.length;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedPosts = filteredPosts.slice(offset, offset + parseInt(limit));
+
+    res.json({
+      posts: paginatedPosts,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching published posts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/blog/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'PUBLISHED')
+      .single();
+
+    if (error) {
+      console.error('Supabase error fetching post by slug:', error);
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    res.json({ post: data });
+  } catch (error) {
+    console.error('Error fetching post by slug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Error handling middleware
@@ -211,6 +562,8 @@ const startServer = async () => {
       console.log(`🔐 JWT expires in: ${process.env.JWT_EXPIRES_IN || '24h'}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🛡️ Security: Rate limiting, CORS, Helmet enabled`);
+      console.log(`📝 Blog posts: Now stored in Supabase database`);
+      console.log(`🗄️ Supabase connected: ${process.env.SUPABASE_URL ? 'Yes' : 'No'}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
